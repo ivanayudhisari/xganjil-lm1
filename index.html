@@ -1,0 +1,1789 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informatika Learning Space - SMAN 1 Sumenep</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        deepPurple: '#4C1D95',
+                        royalPurple: '#6D28D9',
+                        violetAccent: '#8B5CF6',
+                        lavenderBg: '#C4B5FD',
+                        softWhite: '#F8F7FF',
+                        accentGold: '#FBBF24',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- jsPDF & XLSX for Exports -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .dark .glass-card {
+            background: rgba(30, 27, 75, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .code-block { font-family: 'Fira Code', monospace; }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        .dark ::-webkit-scrollbar-track { background: #1e1b4b; }
+        ::-webkit-scrollbar-thumb { background: #8B5CF6; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6D28D9; }
+    </style>
+</head>
+<body class="bg-[#F8F7FF] dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-300">
+
+    <!-- TOP NAVBAR -->
+    <header class="sticky top-0 z-40 w-full bg-deepPurple/95 backdrop-blur text-white shadow-lg border-b border-violetAccent/20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <button id="mobile-toggle" class="lg:hidden p-2 rounded-lg hover:bg-royalPurple text-white">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="navigateTo('home')">
+                    <div id="school-logo-container" class="relative group">
+                        <img id="school-logo" src="https://placehold.co/100x100/6D28D9/FFFFFF?text=SMAN1" alt="Logo SMAN 1 Sumenep" class="w-10 h-10 rounded-full border-2 border-accentGold object-cover shadow">
+                        <label for="logo-upload" class="hidden group-hover:flex absolute inset-0 bg-black/60 rounded-full items-center justify-center cursor-pointer text-xs text-white">
+                            <i class="fa-solid fa-camera"></i>
+                        </label>
+                        <input type="file" id="logo-upload" accept="image/*" class="hidden" onchange="handleLogoChange(event)">
+                    </div>
+                    <div>
+                        <h1 class="font-extrabold text-base sm:text-lg tracking-tight leading-none text-white">INFORMATIKA LEARNING SPACE</h1>
+                        <p class="text-xs text-lavenderBg font-light tracking-wide hidden sm:block">SMAN 1 Sumenep • Fase E (Kelas X)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Header Action Controls -->
+            <div class="flex items-center space-x-3">
+                <div class="relative hidden md:block">
+                    <input type="text" id="global-search" onkeyup="handleGlobalSearch(event)" placeholder="Cari materi, algoritma..." class="w-48 lg:w-64 bg-royalPurple/50 text-xs text-white placeholder-lavenderBg/70 rounded-full py-2 px-4 pl-9 focus:outline-none focus:ring-2 focus:ring-accentGold transition">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-xs text-lavenderBg"></i>
+                </div>
+                
+                <!-- Dark Mode Toggle -->
+                <button id="theme-toggle" onclick="toggleDarkMode()" class="p-2 rounded-full hover:bg-royalPurple text-accentGold transition" title="Ganti Tema">
+                    <i class="fa-solid fa-moon text-lg" id="theme-icon"></i>
+                </button>
+
+                <!-- User Profile / Role Indicator -->
+                <div class="flex items-center space-x-2 bg-royalPurple/60 px-3 py-1.5 rounded-full border border-violetAccent/30">
+                    <i class="fa-solid fa-user-graduate text-accentGold text-sm" id="role-icon"></i>
+                    <span class="text-xs font-semibold" id="user-role-label">Murid</span>
+                    <button onclick="toggleRoleSwitch()" class="text-[10px] bg-accentGold text-slate-900 font-bold px-2 py-0.5 rounded-full hover:bg-yellow-300 transition">Switch</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex-1 flex max-w-7xl w-full mx-auto">
+        <!-- SIDEBAR NAVIGATION -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-30 w-64 bg-deepPurple text-white transform -translate-x-full lg:translate-x-0 lg:static lg:z-auto transition-transform duration-300 ease-in-out flex flex-col justify-between shadow-2xl lg:shadow-none border-r border-violetAccent/10">
+            <div class="p-4 space-y-6 overflow-y-auto max-h-[calc(100vh-4rem)]">
+                <div class="space-y-1">
+                    <p class="px-3 text-[10px] font-bold tracking-wider text-lavenderBg/70 uppercase">Navigasi Utama</p>
+                    <nav class="space-y-1 text-sm font-medium">
+                        <button onclick="navigateTo('home')" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl hover:bg-royalPurple transition" data-page="home">
+                            <i class="fa-solid fa-house w-5 text-violetAccent"></i>
+                            <span>Beranda</span>
+                        </button>
+                        <button onclick="navigateTo('identity')" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl hover:bg-royalPurple transition" data-page="identity">
+                            <i class="fa-solid fa-id-card w-5 text-violetAccent"></i>
+                            <span>Profil & Tujuan</span>
+                        </button>
+                    </nav>
+                </div>
+
+                <div class="space-y-1">
+                    <p class="px-3 text-[10px] font-bold tracking-wider text-lavenderBg/70 uppercase">Bahan Ajar & Modul</p>
+                    <nav class="space-y-1 text-sm font-medium">
+                        <button onclick="navigateTo('materi-ds')" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl hover:bg-royalPurple transition" data-page="materi-ds">
+                            <i class="fa-solid fa-cubes w-5 text-violetAccent"></i>
+                            <span>Struktur Data</span>
+                        </button>
+                        <button onclick="navigateTo('materi-algo')" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl hover:bg-royalPurple transition" data-page="materi-algo">
+                            <i class="fa-solid fa-code-branch w-5 text-violetAccent"></i>
+                            <span>Algoritma Standar</span>
+                        </button>
+                    </nav>
+                </div>
+
+                <div class="space-y-1">
+                    <p class="px-3 text-[10px] font-bold tracking-wider text-lavenderBg/70 uppercase">Laboratorium & Aktivitas</p>
+                    <nav class="space-y-1 text-sm font-medium">
+                        <button onclick="navigateTo('playground')" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl hover:bg-royalPurple transition" data-page="playground">
+                            <i class="fa-solid fa-flask w-5 text-accentGold"></i>
+                            <span class="font-bold text-accentGold">Algorithm Playground</span>
+                        </button>
+                        <button onclick="navigateTo('lkpd')" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl hover:bg-royalPurple transition" data-page="lkpd">
+                            <i class="fa-solid fa-file-pen w-5 text-violetAccent"></i>
+                            <span>LKPD Digital</span>
+                        </button>
+                        <button onclick="navigateTo('quiz')" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl hover:bg-royalPurple transition" data-page="quiz">
+                            <i class="fa-solid fa-gamepad w-5 text-violetAccent"></i>
+                            <span>Kuis Interaktif</span>
+                        </button>
+                        <button onclick="navigateTo('evaluasi')" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl hover:bg-royalPurple transition" data-page="evaluasi">
+                            <i class="fa-solid fa-file-signature w-5 text-violetAccent"></i>
+                            <span>Evaluasi Sumatif</span>
+                        </button>
+                        <button onclick="navigateTo('refleksi')" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl hover:bg-royalPurple transition" data-page="refleksi">
+                            <i class="fa-solid fa-heart-pulse w-5 text-violetAccent"></i>
+                            <span>Refleksi Belajar</span>
+                        </button>
+                    </nav>
+                </div>
+
+                <div class="space-y-1 pt-2 border-t border-violetAccent/20">
+                    <p class="px-3 text-[10px] font-bold tracking-wider text-lavenderBg/70 uppercase">Portal Pengajar</p>
+                    <nav class="space-y-1 text-sm font-medium">
+                        <button onclick="navigateTo('teacher-dashboard')" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl hover:bg-royalPurple transition text-slate-200" data-page="teacher-dashboard">
+                            <i class="fa-solid fa-chalkboard-user w-5 text-accentGold"></i>
+                            <span>Dashboard Guru</span>
+                        </button>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Footer Sidebar Info -->
+            <div class="p-4 bg-slate-950/40 text-xs text-lavenderBg/80 border-t border-violetAccent/20 space-y-1">
+                <p class="font-bold text-white">Guru Pengampu:</p>
+                <p>Ach. Febriyanto, S.Pd.</p>
+                <p class="text-[10px] text-slate-400">NIP. 198302252022211 024</p>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT CONTAINER -->
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto max-w-full">
+
+            <!-- PAGE 1: HOME / DASHBOARD -->
+            <section id="page-home" class="page-content space-y-8">
+                <!-- Hero Section -->
+                <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-deepPurple via-royalPurple to-violetAccent text-white p-8 sm:p-12 shadow-2xl border border-violetAccent/30">
+                    <div class="relative z-10 max-w-2xl space-y-4">
+                        <span class="px-3 py-1 bg-white/20 text-accentGold text-xs font-bold rounded-full uppercase tracking-wider backdrop-blur-sm">Modul Pembelajaran Kurikulum Merdeka</span>
+                        <h1 class="text-3xl sm:text-5xl font-black tracking-tight leading-tight">Selamat Datang di Dunia Struktur Data & Algoritma!</h1>
+                        <p class="text-lavenderBg text-sm sm:text-base leading-relaxed">
+                            "Jelajahi Logika, Bangun Algoritma, Ciptakan Solusi!" Media pembelajaran interaktif digital mata pelajaran Informatika SMA Negeri 1 Sumenep.
+                        </p>
+                        <div class="flex flex-wrap gap-4 pt-4">
+                            <button onclick="navigateTo('materi-ds')" class="px-6 py-3 rounded-2xl bg-accentGold text-slate-900 font-extrabold hover:bg-yellow-300 shadow-lg transform hover:-translate-y-0.5 transition flex items-center space-x-2">
+                                <i class="fa-solid fa-rocket"></i>
+                                <span>Mulai Belajar</span>
+                            </button>
+                            <button onclick="navigateTo('playground')" class="px-6 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold backdrop-blur-md border border-white/20 transition flex items-center space-x-2">
+                                <i class="fa-solid fa-flask text-accentGold"></i>
+                                <span>Coba Simulasi</span>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Decorative Floating Code Shapes -->
+                    <div class="absolute right-4 bottom-4 opacity-20 lg:opacity-40 pointer-events-none transform translate-x-10 translate-y-10">
+                        <i class="fa-solid fa-code text-9xl text-white"></i>
+                    </div>
+                </div>
+
+                <!-- Learning Statistics Grid -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="glass-card p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center space-x-4">
+                        <div class="p-3 bg-violet-100 dark:bg-violet-900/50 text-royalPurple dark:text-violetAccent rounded-xl">
+                            <i class="fa-solid fa-book-open text-2xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Total Materi</p>
+                            <h3 class="text-2xl font-black text-deepPurple dark:text-lavenderBg">10 Topik</h3>
+                        </div>
+                    </div>
+                    <div class="glass-card p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center space-x-4">
+                        <div class="p-3 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-xl">
+                            <i class="fa-solid fa-sliders text-2xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Simulasi Lab</p>
+                            <h3 class="text-2xl font-black text-deepPurple dark:text-lavenderBg">10 Playgrounds</h3>
+                        </div>
+                    </div>
+                    <div class="glass-card p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center space-x-4">
+                        <div class="p-3 bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 rounded-xl">
+                            <i class="fa-solid fa-trophy text-2xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Latihan & Kuis</p>
+                            <h3 class="text-2xl font-black text-deepPurple dark:text-lavenderBg">25+ Soal</h3>
+                        </div>
+                    </div>
+                    <div class="glass-card p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center space-x-4">
+                        <div class="p-3 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 rounded-xl">
+                            <i class="fa-solid fa-chart-line text-2xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Progres Belajar</p>
+                            <h3 class="text-2xl font-black text-emerald-600 dark:text-emerald-400" id="user-progress-percentage">0%</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Learning Scope Cards -->
+                <div class="space-y-4">
+                    <h2 class="text-xl font-bold text-deepPurple dark:text-lavenderBg flex items-center space-x-2">
+                        <i class="fa-solid fa-layer-group text-violetAccent"></i>
+                        <span>Ringkasan Modul Informatika (Fase E)</span>
+                    </h2>
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <div class="glass-card p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 relative overflow-hidden">
+                            <div class="w-10 h-10 rounded-xl bg-violetAccent/20 flex items-center justify-center text-royalPurple dark:text-violetAccent font-bold">P1</div>
+                            <h3 class="font-bold text-lg">Struktur Data</h3>
+                            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">Pengorganisasian data dalam memori: Array, Linked List, Stack (LIFO), Queue (FIFO), dan Tree (Hierarki).</p>
+                            <span class="inline-block text-[11px] font-semibold text-royalPurple dark:text-violetAccent">Alokasi: 2 × 45 Menit</span>
+                        </div>
+                        <div class="glass-card p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 relative overflow-hidden">
+                            <div class="w-10 h-10 rounded-xl bg-violetAccent/20 flex items-center justify-center text-royalPurple dark:text-violetAccent font-bold">P2</div>
+                            <h3 class="font-bold text-lg">Algoritma Standar</h3>
+                            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">Pencarian (Linear & Binary Search) serta Pengurutan (Bubble, Insertion, & Selection Sort).</p>
+                            <span class="inline-block text-[11px] font-semibold text-royalPurple dark:text-violetAccent">Alokasi: 2 × 45 Menit</span>
+                        </div>
+                        <div class="glass-card p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 relative overflow-hidden">
+                            <div class="w-10 h-10 rounded-xl bg-violetAccent/20 flex items-center justify-center text-royalPurple dark:text-violetAccent font-bold">P3</div>
+                            <h3 class="font-bold text-lg">Evaluasi Sumatif</h3>
+                            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">Asesmen akhir komprehensif, penyelesaian lembar kerja analitis, dan refleksi pembelajaran mendalam.</p>
+                            <span class="inline-block text-[11px] font-semibold text-royalPurple dark:text-violetAccent">Alokasi: 2 × 45 Menit</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Access Dashboard Menu -->
+                <div class="space-y-4">
+                    <h2 class="text-xl font-bold text-deepPurple dark:text-lavenderBg flex items-center space-x-2">
+                        <i class="fa-solid fa-compass text-violetAccent"></i>
+                        <span>Akses Cepat Fitur Pembelajaran</span>
+                    </h2>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                        <button onclick="navigateTo('materi-ds')" class="glass-card p-4 rounded-2xl hover:bg-violet-50 dark:hover:bg-slate-800 text-center space-y-2 transition border border-slate-200 dark:border-slate-800 group">
+                            <div class="w-12 h-12 mx-auto rounded-xl bg-deepPurple text-white flex items-center justify-center text-xl group-hover:scale-110 transition">
+                                <i class="fa-solid fa-cubes"></i>
+                            </div>
+                            <p class="text-xs font-bold text-slate-700 dark:text-slate-200">Struktur Data</p>
+                        </button>
+                        <button onclick="navigateTo('materi-algo')" class="glass-card p-4 rounded-2xl hover:bg-violet-50 dark:hover:bg-slate-800 text-center space-y-2 transition border border-slate-200 dark:border-slate-800 group">
+                            <div class="w-12 h-12 mx-auto rounded-xl bg-royalPurple text-white flex items-center justify-center text-xl group-hover:scale-110 transition">
+                                <i class="fa-solid fa-code-branch"></i>
+                            </div>
+                            <p class="text-xs font-bold text-slate-700 dark:text-slate-200">Algoritma</p>
+                        </button>
+                        <button onclick="navigateTo('playground')" class="glass-card p-4 rounded-2xl hover:bg-violet-50 dark:hover:bg-slate-800 text-center space-y-2 transition border border-slate-200 dark:border-slate-800 group">
+                            <div class="w-12 h-12 mx-auto rounded-xl bg-violetAccent text-white flex items-center justify-center text-xl group-hover:scale-110 transition">
+                                <i class="fa-solid fa-flask"></i>
+                            </div>
+                            <p class="text-xs font-bold text-slate-700 dark:text-slate-200">Simulasi Lab</p>
+                        </button>
+                        <button onclick="navigateTo('lkpd')" class="glass-card p-4 rounded-2xl hover:bg-violet-50 dark:hover:bg-slate-800 text-center space-y-2 transition border border-slate-200 dark:border-slate-800 group">
+                            <div class="w-12 h-12 mx-auto rounded-xl bg-amber-500 text-white flex items-center justify-center text-xl group-hover:scale-110 transition">
+                                <i class="fa-solid fa-file-pen"></i>
+                            </div>
+                            <p class="text-xs font-bold text-slate-700 dark:text-slate-200">LKPD Digital</p>
+                        </button>
+                        <button onclick="navigateTo('quiz')" class="glass-card p-4 rounded-2xl hover:bg-violet-50 dark:hover:bg-slate-800 text-center space-y-2 transition border border-slate-200 dark:border-slate-800 group">
+                            <div class="w-12 h-12 mx-auto rounded-xl bg-emerald-500 text-white flex items-center justify-center text-xl group-hover:scale-110 transition">
+                                <i class="fa-solid fa-gamepad"></i>
+                            </div>
+                            <p class="text-xs font-bold text-slate-700 dark:text-slate-200">Kuis Formatif</p>
+                        </button>
+                        <button onclick="navigateTo('evaluasi')" class="glass-card p-4 rounded-2xl hover:bg-violet-50 dark:hover:bg-slate-800 text-center space-y-2 transition border border-slate-200 dark:border-slate-800 group">
+                            <div class="w-12 h-12 mx-auto rounded-xl bg-rose-500 text-white flex items-center justify-center text-xl group-hover:scale-110 transition">
+                                <i class="fa-solid fa-file-signature"></i>
+                            </div>
+                            <p class="text-xs font-bold text-slate-700 dark:text-slate-200">Ujian Sumatif</p>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PAGE 2: PROFIL & TUJUAN PEMBELAJARAN -->
+            <section id="page-identity" class="page-content space-y-6 hidden">
+                <div class="border-b border-slate-200 dark:border-slate-800 pb-4">
+                    <h1 class="text-2xl font-black text-deepPurple dark:text-lavenderBg">Identitas Modul & Tujuan Pembelajaran</h1>
+                    <p class="text-xs text-slate-500">Informasi kurikulum Rencana Pembelajaran Mendalam (RPM) SMA Negeri 1 Sumenep</p>
+                </div>
+
+                <!-- Info Grid -->
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="glass-card p-6 rounded-2xl space-y-4 border border-slate-200 dark:border-slate-800">
+                        <h3 class="font-bold text-lg text-royalPurple dark:text-violetAccent border-b pb-2 flex items-center space-x-2">
+                            <i class="fa-solid fa-school"></i>
+                            <span>Identitas Mata Pelajaran</span>
+                        </h3>
+                        <dl class="grid grid-cols-2 gap-2 text-xs">
+                            <dt class="font-semibold text-slate-500">Satuan Pendidikan:</dt>
+                            <dd class="font-bold">SMA Negeri 1 Sumenep</dd>
+                            <dt class="font-semibold text-slate-500">Mata Pelajaran:</dt>
+                            <dd class="font-bold">Informatika</dd>
+                            <dt class="font-semibold text-slate-500">Kelas / Fase:</dt>
+                            <dd class="font-bold">X / Fase E</dd>
+                            <dt class="font-semibold text-slate-500">Semester:</dt>
+                            <dd class="font-bold">Ganjil (TP 2026/2027)</dd>
+                            <dt class="font-semibold text-slate-500">Guru Pengampu:</dt>
+                            <dd class="font-bold">Ach. Febriyanto, S.Pd.</dd>
+                            <dt class="font-semibold text-slate-500">Alokasi Waktu:</dt>
+                            <dd class="font-bold">6 × 45 menit (3 Pertemuan)</dd>
+                        </dl>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-2xl space-y-4 border border-slate-200 dark:border-slate-800">
+                        <h3 class="font-bold text-lg text-royalPurple dark:text-violetAccent border-b pb-2 flex items-center space-x-2">
+                            <i class="fa-solid fa-bullseye"></i>
+                            <span>Capaian Pembelajaran (CP)</span>
+                        </h3>
+                        <p class="text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+                            Pada akhir fase E, peserta didik mampu memahami konsep struktur data (Array, Linked List, Stack, Queue, Tree) dan algoritma standar (Linear Search, Binary Search, Bubble Sort, Insertion Sort, Selection Sort) serta menerapkannya dalam penyelesaian masalah kontekstual.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- TP Cards -->
+                <div class="space-y-4">
+                    <h3 class="font-bold text-lg text-deepPurple dark:text-lavenderBg">Tujuan Pembelajaran Per Pertemuan</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="p-4 rounded-xl bg-violet-50 dark:bg-slate-900 border-l-4 border-royalPurple space-y-1">
+                            <span class="text-[10px] font-bold text-royalPurple uppercase tracking-wider">Pertemuan 1</span>
+                            <h4 class="font-bold text-sm">Konsep Struktur Data</h4>
+                            <p class="text-xs text-slate-600 dark:text-slate-400">Murid mampu menjelaskan konsep dan analogi struktur data (Array, Linked List, Stack, Queue, Tree) dengan benar.</p>
+                        </div>
+                        <div class="p-4 rounded-xl bg-violet-50 dark:bg-slate-900 border-l-4 border-violetAccent space-y-1">
+                            <span class="text-[10px] font-bold text-violetAccent uppercase tracking-wider">Pertemuan 2</span>
+                            <h4 class="font-bold text-sm">Konsep Algoritma Standar</h4>
+                            <p class="text-xs text-slate-600 dark:text-slate-400">Murid mampu menjelaskan dan mensimulasikan langkah algoritma pencarian & pengurutan secara tepat.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profil Pelajar Pancasila -->
+                <div class="space-y-4">
+                    <h3 class="font-bold text-lg text-deepPurple dark:text-lavenderBg">Dimensi Profil Pelajar Pancasila</h3>
+                    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="glass-card p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
+                            <i class="fa-solid fa-brain text-2xl text-royalPurple"></i>
+                            <h4 class="font-bold text-sm">1. Penalaran Kritis</h4>
+                            <p class="text-[11px] text-slate-500">Menganalisis efisiensi struktur data dan kompleksitas waktu algoritma.</p>
+                        </div>
+                        <div class="glass-card p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
+                            <i class="fa-solid fa-wand-magic-sparkles text-2xl text-amber-500"></i>
+                            <h4 class="font-bold text-sm">2. Kreativitas</h4>
+                            <p class="text-[11px] text-slate-500">Merancang pendekatan logis baru dalam memecahkan masalah komputasional.</p>
+                        </div>
+                        <div class="glass-card p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
+                            <i class="fa-solid fa-people-group text-2xl text-emerald-500"></i>
+                            <h4 class="font-bold text-sm">3. Kolaborasi</h4>
+                            <p class="text-[11px] text-slate-500">Bekerja sama dalam kelompok menyelesaikan Lembar Kerja Peserta Didik (LKPD).</p>
+                        </div>
+                        <div class="glass-card p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
+                            <i class="fa-solid fa-user-check text-2xl text-rose-500"></i>
+                            <h4 class="font-bold text-sm">4. Kemandirian</h4>
+                            <p class="text-[11px] text-slate-500">Mampu belajar dan mencoba simulasi interaktif secara independen kapan saja.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PAGE 3: MATERI STRUKTUR DATA -->
+            <section id="page-materi-ds" class="page-content space-y-8 hidden">
+                <div class="border-b border-slate-200 dark:border-slate-800 pb-4">
+                    <span class="text-xs font-bold text-royalPurple dark:text-violetAccent uppercase tracking-widest">Pertemuan 1</span>
+                    <h1 class="text-2xl font-black text-deepPurple dark:text-lavenderBg">Materi Struktur Data</h1>
+                    <p class="text-xs text-slate-500">Cara terorganisir untuk menyimpan, mengatur, dan mengelola data dalam memori komputer.</p>
+                </div>
+
+                <!-- Tabs Navigation for DS -->
+                <div class="flex overflow-x-auto space-x-2 pb-2 border-b border-slate-200 dark:border-slate-800">
+                    <button onclick="showDsTab('array')" class="ds-tab-btn px-4 py-2 rounded-xl font-bold text-xs bg-royalPurple text-white" data-tab="array">Array (Larik)</button>
+                    <button onclick="showDsTab('linkedlist')" class="ds-tab-btn px-4 py-2 rounded-xl font-bold text-xs hover:bg-slate-200 dark:hover:bg-slate-800" data-tab="linkedlist">Linked List</button>
+                    <button onclick="showDsTab('stack')" class="ds-tab-btn px-4 py-2 rounded-xl font-bold text-xs hover:bg-slate-200 dark:hover:bg-slate-800" data-tab="stack">Stack (Tumpukan)</button>
+                    <button onclick="showDsTab('queue')" class="ds-tab-btn px-4 py-2 rounded-xl font-bold text-xs hover:bg-slate-200 dark:hover:bg-slate-800" data-tab="queue">Queue (Antrean)</button>
+                    <button onclick="showDsTab('tree')" class="ds-tab-btn px-4 py-2 rounded-xl font-bold text-xs hover:bg-slate-200 dark:hover:bg-slate-800" data-tab="tree">Tree (Pohon)</button>
+                </div>
+
+                <!-- Tab Content: ARRAY -->
+                <div id="ds-tab-array" class="ds-tab-content space-y-6">
+                    <div class="grid lg:grid-cols-2 gap-6 items-center">
+                        <div class="space-y-4">
+                            <h2 class="text-xl font-black text-deepPurple dark:text-lavenderBg">1. Array (Larik)</h2>
+                            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                                Struktur data yang menyimpan sekumpulan elemen data dengan tipe yang sama secara berurutan dalam lokasi memori yang bersebelahan. Setiap elemen diakses langsung melalui <strong>Indeks (Posisi)</strong>.
+                            </p>
+                            <div class="p-4 bg-amber-50 dark:bg-amber-950/40 rounded-xl border-l-4 border-accentGold text-xs space-y-1">
+                                <span class="font-bold text-amber-700 dark:text-amber-400">Analogi Dunia Nyata:</span>
+                                <p><strong>Rak Sepatu Loker:</strong> Setiap slot memiliki nomor tetap (0, 1, 2, 3). Untuk mengambil sepatu di slot 3, Anda bisa langsung membukanya secara instan tanpa harus mengecek slot 0, 1, atau 2 (Direct Access).</p>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                <div class="p-2 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg text-emerald-700 dark:text-emerald-400">
+                                    <strong>Kelebihan:</strong> Akses cepat O(1) lewat indeks.
+                                </div>
+                                <div class="p-2 bg-rose-50 dark:bg-rose-950/30 rounded-lg text-rose-700 dark:text-rose-400">
+                                    <strong>Kekurangan:</strong> Ukuran bersifat statis (tetap).
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Code & Interactive Micro Visual -->
+                        <div class="space-y-4">
+                            <div class="glass-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase">Contoh Kode Python: Array</span>
+                                <pre class="code-block bg-slate-900 text-slate-100 p-3 rounded-xl text-xs overflow-x-auto mt-2"><code># Deklarasi Array (List di Python)
+rak_sepatu = ["Sepatu Merah", "Sepatu Biru", "Sepatu Hitam"]
+
+# Akses Elemen via Indeks (Direct Access)
+print(rak_sepatu[0]) # Output: Sepatu Merah
+print(rak_sepatu[2]) # Output: Sepatu Hitam</code></pre>
+                            </div>
+
+                            <!-- Visual Diagram Array -->
+                            <div class="glass-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2">
+                                <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Visualisasi Indeks Array:</span>
+                                <div class="grid grid-cols-4 gap-2 text-center text-xs">
+                                    <div class="p-2 bg-violet-100 dark:bg-violet-900/50 rounded-lg border border-violetAccent">
+                                        <div class="text-[10px] text-slate-400 font-bold">Indeks 0</div>
+                                        <div class="font-bold text-royalPurple dark:text-violetAccent">Data A</div>
+                                    </div>
+                                    <div class="p-2 bg-violet-100 dark:bg-violet-900/50 rounded-lg border border-violetAccent">
+                                        <div class="text-[10px] text-slate-400 font-bold">Indeks 1</div>
+                                        <div class="font-bold text-royalPurple dark:text-violetAccent">Data B</div>
+                                    </div>
+                                    <div class="p-2 bg-violet-100 dark:bg-violet-900/50 rounded-lg border border-violetAccent">
+                                        <div class="text-[10px] text-slate-400 font-bold">Indeks 2</div>
+                                        <div class="font-bold text-royalPurple dark:text-violetAccent">Data C</div>
+                                    </div>
+                                    <div class="p-2 bg-violet-100 dark:bg-violet-900/50 rounded-lg border border-violetAccent">
+                                        <div class="text-[10px] text-slate-400 font-bold">Indeks 3</div>
+                                        <div class="font-bold text-royalPurple dark:text-violetAccent">Data D</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: LINKED LIST -->
+                <div id="ds-tab-linkedlist" class="ds-tab-content space-y-6 hidden">
+                    <div class="grid lg:grid-cols-2 gap-6 items-center">
+                        <div class="space-y-4">
+                            <h2 class="text-xl font-black text-deepPurple dark:text-lavenderBg">2. Linked List (Daftar Berantai)</h2>
+                            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                                Kumpulan elemen data (disebut **Node**), di mana setiap node berisi data dan sebuah **Pointer (Penunjuk)** yang mengarahkan ke node berikutnya. Berbeda dari array, posisi memori tidak harus berdampingan.
+                            </p>
+                            <div class="p-4 bg-amber-50 dark:bg-amber-950/40 rounded-xl border-l-4 border-accentGold text-xs space-y-1">
+                                <span class="font-bold text-amber-700 dark:text-amber-400">Analogi Dunia Nyata:</span>
+                                <p><strong>Gerbong Kereta Api:</strong> Setiap gerbong (node) menyimpan penumpang (data) dan disambungkan dengan pengait (pointer) ke gerbong di belakangnya. Menambah gerbong baru di tengah cukup melepas dan menyambung rantai pengait.</p>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                <div class="p-2 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg text-emerald-700 dark:text-emerald-400">
+                                    <strong>Kelebihan:</strong> Ukuran dinamis & mudah insert/delete.
+                                </div>
+                                <div class="p-2 bg-rose-50 dark:bg-rose-950/30 rounded-lg text-rose-700 dark:text-rose-400">
+                                    <strong>Kekurangan:</strong> Akses data harus sekuensial dari Head.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="glass-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase">Contoh Kode Python: Linked List Node</span>
+                                <pre class="code-block bg-slate-900 text-slate-100 p-3 rounded-xl text-xs overflow-x-auto mt-2"><code>class Node:
+    def __init__(self, data):
+        self.data = data
+        self.next = None
+
+# Membuat Node
+node1 = Node("Gerbong 1")
+node2 = Node("Gerbong 2")
+node1.next = node2 # Menghubungkan Pointer</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: STACK -->
+                <div id="ds-tab-stack" class="ds-tab-content space-y-6 hidden">
+                    <div class="grid lg:grid-cols-2 gap-6 items-center">
+                        <div class="space-y-4">
+                            <h2 class="text-xl font-black text-deepPurple dark:text-lavenderBg">3. Stack (Tumpukan - LIFO)</h2>
+                            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                                Struktur data linear dengan prinsip <strong>LIFO (Last-In, First-Out)</strong>. Elemen yang terakhir dimasukkan akan menjadi elemen pertama yang dikeluarkan. Operasi utama: <strong>Push</strong> (Tambah) & <strong>Pop</strong> (Hapus).
+                            </p>
+                            <div class="p-4 bg-amber-50 dark:bg-amber-950/40 rounded-xl border-l-4 border-accentGold text-xs space-y-1">
+                                <span class="font-bold text-amber-700 dark:text-amber-400">Analogi Dunia Nyata:</span>
+                                <p><strong>Tumpukan Piring di Dapur:</strong> Piring yang ditaruh paling akhir (di posisi paling atas) adalah piring yang pertama kali diambil saat hendak makan.</p>
+                            </div>
+                        </div>
+
+                        <div class="glass-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase">Contoh Kode Python: Stack</span>
+                            <pre class="code-block bg-slate-900 text-slate-100 p-3 rounded-xl text-xs overflow-x-auto mt-2"><code>stack = []
+stack.append("Piring 1") # Push
+stack.append("Piring 2") # Push
+piring_diambil = stack.pop() # Pop -> Output: Piring 2</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: QUEUE -->
+                <div id="ds-tab-queue" class="ds-tab-content space-y-6 hidden">
+                    <div class="grid lg:grid-cols-2 gap-6 items-center">
+                        <div class="space-y-4">
+                            <h2 class="text-xl font-black text-deepPurple dark:text-lavenderBg">4. Queue (Antrean - FIFO)</h2>
+                            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                                Struktur data dengan prinsip <strong>FIFO (First-In, First-Out)</strong>. Elemen yang pertama kali datang adalah yang pertama kali dilayani. Operasi utama: <strong>Enqueue</strong> (Masuk Antrean) & <strong>Dequeue</strong> (Keluar Antrean).
+                            </p>
+                            <div class="p-4 bg-amber-50 dark:bg-amber-950/40 rounded-xl border-l-4 border-accentGold text-xs space-y-1">
+                                <span class="font-bold text-amber-700 dark:text-amber-400">Analogi Dunia Nyata:</span>
+                                <p><strong>Antrean Kasir Supermarket:</strong> Pembeli yang datang paling awal akan dilayani dan selesai transaksi terlebih dahulu secara adil.</p>
+                            </div>
+                        </div>
+
+                        <div class="glass-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase">Contoh Kode Python: Queue</span>
+                            <pre class="code-block bg-slate-900 text-slate-100 p-3 rounded-xl text-xs overflow-x-auto mt-2"><code>from collections import deque
+queue = deque()
+queue.append("Pembeli A") # Enqueue
+queue.append("Pembeli B") # Enqueue
+dilayani = queue.popleft() # Dequeue -> Output: Pembeli A</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: TREE -->
+                <div id="ds-tab-tree" class="ds-tab-content space-y-6 hidden">
+                    <div class="grid lg:grid-cols-2 gap-6 items-center">
+                        <div class="space-y-4">
+                            <h2 class="text-xl font-black text-deepPurple dark:text-lavenderBg">5. Tree (Pohon Hierarki)</h2>
+                            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                                Struktur data non-linear ber-hierarki yang dimulai dari **Root (Akar)** dan bercabang ke **Node Anak (Child)**. 
+                            </p>
+                            <div class="p-4 bg-amber-50 dark:bg-amber-950/40 rounded-xl border-l-4 border-accentGold text-xs space-y-1">
+                                <span class="font-bold text-amber-700 dark:text-amber-400">Analogi Dunia Nyata:</span>
+                                <p><strong>Struktur Organisasi Sekolah / Silsilah Keluarga:</strong> Posisi tertinggi diawali dari Wali Kelas / Kepala Sekolah (Root), lalu membawahi Ketua Kelas, Sekretaris, dan Anggota.</p>
+                            </div>
+                        </div>
+
+                        <div class="glass-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase">Contoh Kode Python: Tree Node</span>
+                            <pre class="code-block bg-slate-900 text-slate-100 p-3 rounded-xl text-xs overflow-x-auto mt-2"><code>class TreeNode:
+    def __init__(self, name):
+        self.name = name
+        self.children = []
+
+root = TreeNode("Kepala Sekolah")
+root.children.append(TreeNode("Ketua Kelas"))</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Action -->
+                <div class="flex justify-between items-center pt-4 border-t border-slate-200 dark:border-slate-800">
+                    <button onclick="navigateTo('identity')" class="px-4 py-2 rounded-xl text-xs font-bold border border-slate-300 dark:border-slate-700">← Kembali ke Profil</button>
+                    <button onclick="navigateTo('materi-algo')" class="px-4 py-2 rounded-xl text-xs font-bold bg-royalPurple text-white hover:bg-deepPurple">Lanjut: Materi Algoritma →</button>
+                </div>
+            </section>
+
+            <!-- PAGE 4: MATERI ALGORITMA STANDAR -->
+            <section id="page-materi-algo" class="page-content space-y-8 hidden">
+                <div class="border-b border-slate-200 dark:border-slate-800 pb-4">
+                    <span class="text-xs font-bold text-royalPurple dark:text-violetAccent uppercase tracking-widest">Pertemuan 2</span>
+                    <h1 class="text-2xl font-black text-deepPurple dark:text-lavenderBg">Materi Algoritma Standar</h1>
+                    <p class="text-xs text-slate-500">Prosedur langkah demi langkah untuk Pencarian (Search) dan Pengurutan (Sort).</p>
+                </div>
+
+                <!-- Tabs Navigation for Algo -->
+                <div class="flex overflow-x-auto space-x-2 pb-2 border-b border-slate-200 dark:border-slate-800">
+                    <button onclick="showAlgoTab('linear')" class="algo-tab-btn px-4 py-2 rounded-xl font-bold text-xs bg-royalPurple text-white" data-tab="linear">Linear Search</button>
+                    <button onclick="showAlgoTab('binary')" class="algo-tab-btn px-4 py-2 rounded-xl font-bold text-xs hover:bg-slate-200 dark:hover:bg-slate-800" data-tab="binary">Binary Search</button>
+                    <button onclick="showAlgoTab('bubble')" class="algo-tab-btn px-4 py-2 rounded-xl font-bold text-xs hover:bg-slate-200 dark:hover:bg-slate-800" data-tab="bubble">Bubble Sort</button>
+                    <button onclick="showAlgoTab('insertion')" class="algo-tab-btn px-4 py-2 rounded-xl font-bold text-xs hover:bg-slate-200 dark:hover:bg-slate-800" data-tab="insertion">Insertion Sort</button>
+                    <button onclick="showAlgoTab('selection')" class="algo-tab-btn px-4 py-2 rounded-xl font-bold text-xs hover:bg-slate-200 dark:hover:bg-slate-800" data-tab="selection">Selection Sort</button>
+                </div>
+
+                <!-- Tab Content: LINEAR SEARCH -->
+                <div id="algo-tab-linear" class="algo-tab-content space-y-6">
+                    <div class="grid lg:grid-cols-2 gap-6 items-center">
+                        <div class="space-y-4">
+                            <h2 class="text-xl font-black text-deepPurple dark:text-lavenderBg">1. Linear Search (Pencarian Berurutan)</h2>
+                            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                                Memeriksa setiap elemen data satu per satu dari awal sampai akhir hingga target ditemukan. Tidak memerlukan data yang terurut.
+                            </p>
+                            <div class="p-3 bg-violet-50 dark:bg-slate-900 rounded-xl text-xs">
+                                <strong>Kompleksitas Waktu:</strong> <span class="font-mono font-bold text-rose-500">O(n)</span>
+                            </div>
+                            <div class="p-4 bg-amber-50 dark:bg-amber-950/40 rounded-xl border-l-4 border-accentGold text-xs">
+                                <strong>Analogi RPM:</strong> Mencari kunci mobil yang hilang di rumah dengan mengecek kamar depan, kamar tengah, lalu dapur secara bertahap.
+                            </div>
+                        </div>
+
+                        <div class="glass-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase">Python Code</span>
+                            <pre class="code-block bg-slate-900 text-slate-100 p-3 rounded-xl text-xs overflow-x-auto mt-2"><code>def linear_search(arr, target):
+    for i in range(len(arr)):
+        if arr[i] == target:
+            return i # Ditemukan di indeks i
+    return -1</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: BINARY SEARCH -->
+                <div id="algo-tab-binary" class="algo-tab-content space-y-6 hidden">
+                    <div class="grid lg:grid-cols-2 gap-6 items-center">
+                        <div class="space-y-4">
+                            <h2 class="text-xl font-black text-deepPurple dark:text-lavenderBg">2. Binary Search (Pencarian Biner)</h2>
+                            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                                Membagi interval pencarian menjadi dua bagian secara berulang. <strong>Syarat Mutlak: Data Wajib Terurut!</strong>
+                            </p>
+                            <div class="p-3 bg-violet-50 dark:bg-slate-900 rounded-xl text-xs">
+                                <strong>Kompleksitas Waktu:</strong> <span class="font-mono font-bold text-emerald-500">O(log n)</span>
+                            </div>
+                            <div class="p-4 bg-amber-50 dark:bg-amber-950/40 rounded-xl border-l-4 border-accentGold text-xs">
+                                <strong>Analogi RPM:</strong> Mencari kata di kamus bahasa Indonesia dengan membuka tengah buku lalu membuang paruh yang tak sesuai.
+                            </div>
+                        </div>
+
+                        <div class="glass-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase">Python Code</span>
+                            <pre class="code-block bg-slate-900 text-slate-100 p-3 rounded-xl text-xs overflow-x-auto mt-2"><code>def binary_search(arr, target):
+    low, high = 0, len(arr) - 1
+    while low <= high:
+        mid = (low + high) // 2
+        if arr[mid] == target: return mid
+        elif arr[mid] < target: low = mid + 1
+        else: high = mid - 1
+    return -1</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: BUBBLE SORT -->
+                <div id="algo-tab-bubble" class="algo-tab-content space-y-6 hidden">
+                    <div class="grid lg:grid-cols-2 gap-6 items-center">
+                        <div class="space-y-4">
+                            <h2 class="text-xl font-black text-deepPurple dark:text-lavenderBg">3. Bubble Sort (Pengurutan Gelembung)</h2>
+                            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                                Membandingkan dua elemen berdekatan dan menukarnya jika posisinya salah. Nilai terbesar naik ("menggelembung") ke posisi paling belakang secara bertahap.
+                            </p>
+                            <div class="p-4 bg-amber-50 dark:bg-amber-950/40 rounded-xl border-l-4 border-accentGold text-xs">
+                                <strong>Analogi RPM:</strong> Mengurutkan koin pecahan di saku baju dari nominal terkecil hingga terbesar.
+                            </div>
+                        </div>
+
+                        <div class="glass-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase">Python Code</span>
+                            <pre class="code-block bg-slate-900 text-slate-100 p-3 rounded-xl text-xs overflow-x-auto mt-2"><code>def bubble_sort(arr):
+    n = len(arr)
+    for i in range(n):
+        for j in range(0, n-i-1):
+            if arr[j] > arr[j+1]:
+                arr[j], arr[j+1] = arr[j+1], arr[j]</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: INSERTION SORT -->
+                <div id="algo-tab-insertion" class="algo-tab-content space-y-6 hidden">
+                    <div class="grid lg:grid-cols-2 gap-6 items-center">
+                        <div class="space-y-4">
+                            <h2 class="text-xl font-black text-deepPurple dark:text-lavenderBg">4. Insertion Sort (Pengurutan Penyisipan)</h2>
+                            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                                Mengambil satu elemen baru dan menyelipkannya ke celah yang tepat pada sub-array yang sudah terurut.
+                            </p>
+                            <div class="p-4 bg-amber-50 dark:bg-amber-950/40 rounded-xl border-l-4 border-accentGold text-xs">
+                                <strong>Analogi RPM:</strong> Mengurutkan kartu remi di tangan saat baru diambil satu per satu dari meja.
+                            </div>
+                        </div>
+
+                        <div class="glass-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase">Python Code</span>
+                            <pre class="code-block bg-slate-900 text-slate-100 p-3 rounded-xl text-xs overflow-x-auto mt-2"><code>def insertion_sort(arr):
+    for i in range(1, len(arr)):
+        key = arr[i]
+        j = i - 1
+        while j >= 0 and key < arr[j]:
+            arr[j + 1] = arr[j]
+            j -= 1
+        arr[j + 1] = key</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: SELECTION SORT -->
+                <div id="algo-tab-selection" class="algo-tab-content space-y-6 hidden">
+                    <div class="grid lg:grid-cols-2 gap-6 items-center">
+                        <div class="space-y-4">
+                            <h2 class="text-xl font-black text-deepPurple dark:text-lavenderBg">5. Selection Sort (Pengurutan Seleksi)</h2>
+                            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                                Mencari elemen terkecil dari bagian yang belum terurut, lalu menukarnya ke posisi paling depan.
+                            </p>
+                            <div class="p-4 bg-amber-50 dark:bg-amber-950/40 rounded-xl border-l-4 border-accentGold text-xs">
+                                <strong>Analogi RPM:</strong> Mengurutkan pakaian berukuran S hingga XL di lemari baju.
+                            </div>
+                        </div>
+
+                        <div class="glass-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase">Python Code</span>
+                            <pre class="code-block bg-slate-900 text-slate-100 p-3 rounded-xl text-xs overflow-x-auto mt-2"><code>def selection_sort(arr):
+    for i in range(len(arr)):
+        min_idx = i
+        for j in range(i+1, len(arr)):
+            if arr[j] < arr[min_idx]:
+                min_idx = j
+        arr[i], arr[min_idx] = arr[min_idx], arr[i]</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Action -->
+                <div class="flex justify-between items-center pt-4 border-t border-slate-200 dark:border-slate-800">
+                    <button onclick="navigateTo('materi-ds')" class="px-4 py-2 rounded-xl text-xs font-bold border border-slate-300 dark:border-slate-700">← Kembali ke Struktur Data</button>
+                    <button onclick="navigateTo('playground')" class="px-4 py-2 rounded-xl text-xs font-bold bg-accentGold text-slate-900 hover:bg-yellow-400">Masuk ke Algorithm Playground →</button>
+                </div>
+            </section>
+
+            <!-- PAGE 5: ALGORITHM PLAYGROUND (SIMULATION LAB) -->
+            <section id="page-playground" class="page-content space-y-6 hidden">
+                <div class="border-b border-slate-200 dark:border-slate-800 pb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <h1 class="text-2xl font-black text-deepPurple dark:text-lavenderBg flex items-center space-x-2">
+                            <i class="fa-solid fa-flask text-accentGold"></i>
+                            <span>Algorithm Playground</span>
+                        </h1>
+                        <p class="text-xs text-slate-500">Laboratorium simulasi interaktif langkah demi langkah untuk visualisasi Struktur Data dan Algoritma.</p>
+                    </div>
+
+                    <!-- Simulator Mode Picker -->
+                    <div class="flex space-x-2 bg-slate-200 dark:bg-slate-900 p-1 rounded-xl">
+                        <button onclick="setPlaygroundMode('ds')" id="btn-mode-ds" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-royalPurple text-white">Data Structures</button>
+                        <button onclick="setPlaygroundMode('algo')" id="btn-mode-algo" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300">Algoritma</button>
+                    </div>
+                </div>
+
+                <!-- DS INTERACTIVE PLAYGROUND -->
+                <div id="sim-ds-container" class="space-y-6">
+                    <div class="flex space-x-2 overflow-x-auto pb-2">
+                        <button onclick="loadDsSim('stack')" class="ds-sim-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-violet-100 dark:bg-slate-800 text-royalPurple dark:text-violetAccent border border-violetAccent" data-ds="stack">Stack (Push/Pop)</button>
+                        <button onclick="loadDsSim('queue')" class="ds-sim-btn px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-800" data-ds="queue">Queue (Enqueue/Dequeue)</button>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-6">
+                        <div class="flex items-center space-x-4">
+                            <input type="text" id="ds-input-val" placeholder="Masukkan Elemen Data..." class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 text-xs border border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-violetAccent">
+                            <button id="ds-btn-add" onclick="handleDsAdd()" class="px-4 py-2 rounded-xl bg-royalPurple text-white font-bold text-xs hover:bg-deepPurple">Tambah (Push/Enqueue)</button>
+                            <button id="ds-btn-remove" onclick="handleDsRemove()" class="px-4 py-2 rounded-xl bg-rose-500 text-white font-bold text-xs hover:bg-rose-600">Hapus (Pop/Dequeue)</button>
+                        </div>
+
+                        <!-- Canvas Visualization Area -->
+                        <div class="p-6 bg-slate-950 rounded-2xl min-h-[220px] flex items-center justify-center relative overflow-hidden">
+                            <div id="ds-visual-display" class="flex flex-wrap gap-3 justify-center items-center">
+                                <!-- Dynamic Render Nodes Here -->
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-400 italic text-center" id="ds-sim-info">Status: Siap menambah atau mengambil data.</p>
+                    </div>
+                </div>
+
+                <!-- ALGO INTERACTIVE SIMULATOR LAB -->
+                <div id="sim-algo-container" class="space-y-6 hidden">
+                    <div class="flex space-x-2 overflow-x-auto pb-2">
+                        <button onclick="selectAlgoSim('bubble')" class="algo-sim-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-royalPurple text-white" data-sim="bubble">Bubble Sort</button>
+                        <button onclick="selectAlgoSim('insertion')" class="algo-sim-btn px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-800" data-sim="insertion">Insertion Sort</button>
+                        <button onclick="selectAlgoSim('selection')" class="algo-sim-btn px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-800" data-sim="selection">Selection Sort</button>
+                        <button onclick="selectAlgoSim('linear')" class="algo-sim-btn px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-800" data-sim="linear">Linear Search</button>
+                        <button onclick="selectAlgoSim('binary')" class="algo-sim-btn px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-800" data-sim="binary">Binary Search</button>
+                    </div>
+
+                    <!-- Simulator Controls & Settings -->
+                    <div class="glass-card p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-6">
+                        <div class="flex flex-wrap items-center justify-between gap-4">
+                            <div class="flex items-center space-x-3">
+                                <label class="text-xs font-bold">Input Array (Pisahkan Koma):</label>
+                                <input type="text" id="algo-input-array" value="15, 8, 20, 5, 12" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 text-xs border border-slate-300 dark:border-slate-700 w-48 font-mono">
+                                <div id="target-search-container" class="hidden flex items-center space-x-2">
+                                    <label class="text-xs font-bold">Target:</label>
+                                    <input type="number" id="algo-target-val" value="20" class="px-2 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 text-xs border border-slate-300 dark:border-slate-700 w-16 font-mono">
+                                </div>
+                                <button onclick="resetAlgoSim()" class="px-3 py-1.5 bg-royalPurple text-white text-xs font-bold rounded-xl hover:bg-deepPurple">Set Data</button>
+                            </div>
+
+                            <div class="flex items-center space-x-2">
+                                <button onclick="stepAlgoSim()" class="px-4 py-2 bg-amber-500 text-white text-xs font-bold rounded-xl hover:bg-amber-600">
+                                    <i class="fa-solid fa-step-forward mr-1"></i> Step Next
+                                </button>
+                                <button onclick="toggleAutoPlayAlgoSim()" id="btn-play-algo" class="px-4 py-2 bg-emerald-500 text-white text-xs font-bold rounded-xl hover:bg-emerald-600">
+                                    <i class="fa-solid fa-play mr-1"></i> Auto Play
+                                </button>
+                                <button onclick="resetAlgoSim()" class="px-4 py-2 bg-slate-500 text-white text-xs font-bold rounded-xl hover:bg-slate-600">
+                                    <i class="fa-solid fa-rotate-left mr-1"></i> Reset
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Bar Chart / Box Visualization Array Canvas -->
+                        <div class="p-8 bg-slate-950 rounded-2xl min-h-[260px] flex items-end justify-center space-x-3 sm:space-x-6 relative" id="algo-bars-container">
+                            <!-- Bars Rendered Dynamic Javascript -->
+                        </div>
+
+                        <!-- Color Legend Info -->
+                        <div class="flex flex-wrap items-center justify-center gap-6 text-[11px] font-semibold">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-3 h-3 rounded bg-deepPurple border border-violetAccent"></span>
+                                <span>Normal</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="w-3 h-3 rounded bg-accentGold"></span>
+                                <span>Aktif Diperiksa</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="w-3 h-3 rounded bg-emerald-500"></span>
+                                <span>Terurut / Ditemukan</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="w-3 h-3 rounded bg-rose-500"></span>
+                                <span>Ditukar / Dieliminasi</span>
+                            </div>
+                        </div>
+
+                        <!-- Metrics & Step Explanation Box -->
+                        <div class="grid sm:grid-cols-3 gap-4 pt-4 border-t border-slate-200 dark:border-slate-800 text-xs">
+                            <div class="p-3 bg-violet-50 dark:bg-slate-900 rounded-xl space-y-1">
+                                <span class="text-slate-400 font-bold">Jumlah Perbandingan:</span>
+                                <p class="text-lg font-black text-royalPurple dark:text-violetAccent" id="stat-comparisons">0</p>
+                            </div>
+                            <div class="p-3 bg-violet-50 dark:bg-slate-900 rounded-xl space-y-1">
+                                <span class="text-slate-400 font-bold">Jumlah Pertukaran:</span>
+                                <p class="text-lg font-black text-royalPurple dark:text-violetAccent" id="stat-swaps">0</p>
+                            </div>
+                            <div class="p-3 bg-amber-50 dark:bg-amber-950/40 rounded-xl space-y-1 sm:col-span-1">
+                                <span class="text-amber-700 dark:text-amber-400 font-bold">Keterangan Langkah Saat Ini:</span>
+                                <p class="text-xs text-slate-700 dark:text-slate-200 font-medium" id="stat-log">Klik 'Step Next' atau 'Auto Play' untuk memulai simulasi.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PAGE 6: LKPD DIGITAL INTERAKTIF -->
+            <section id="page-lkpd" class="page-content space-y-6 hidden">
+                <div class="border-b border-slate-200 dark:border-slate-800 pb-4 flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl font-black text-deepPurple dark:text-lavenderBg">LKPD Digital Interaktif</h1>
+                        <p class="text-xs text-slate-500">Lembar Kerja Peserta Didik Berbasis Aktivitas Kelompok & Individu (Bahan Ajar RPM)</p>
+                    </div>
+                    <button onclick="exportLkpdPdf()" class="px-4 py-2 bg-emerald-600 text-white font-bold text-xs rounded-xl hover:bg-emerald-700 transition flex items-center space-x-2">
+                        <i class="fa-solid fa-file-pdf"></i>
+                        <span>Cetak / Unduh PDF</span>
+                    </button>
+                </div>
+
+                <!-- Identity Form for LKPD -->
+                <div class="glass-card p-6 rounded-2xl border border-slate-200 dark:border-slate-800 grid md:grid-cols-3 gap-4 text-xs">
+                    <div>
+                        <label class="font-bold">Nama Kelompok / Murid:</label>
+                        <input type="text" id="lkpd-student-name" placeholder="Masukkan nama murid/kelompok" class="mt-1 w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700">
+                    </div>
+                    <div>
+                        <label class="font-bold">Kelas:</label>
+                        <input type="text" id="lkpd-class" value="X - Fase E" class="mt-1 w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700" readonly>
+                    </div>
+                    <div>
+                        <label class="font-bold">Anggota Kelompok:</label>
+                        <input type="text" id="lkpd-members" placeholder="Nama anggota kelompok..." class="mt-1 w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700">
+                    </div>
+                </div>
+
+                <!-- LKPD Case Studies Grid -->
+                <div class="space-y-6">
+                    <!-- Case Study 1: Array -->
+                    <div class="glass-card p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+                        <div class="flex items-center space-x-3">
+                            <span class="w-8 h-8 rounded-full bg-royalPurple text-white font-bold flex items-center justify-center text-xs">1</span>
+                            <h3 class="font-bold text-base">Studi Kasus 1: Array (Loker Rak Sepatu)</h3>
+                        </div>
+                        <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-violet-50 dark:bg-slate-900 p-3 rounded-xl">
+                            Di depan kelas terdapat rak berisi 5 loker berturut-turut berindeks 0, 1, 2, 3, dan 4. Ukurannya dipatok dari awal. Untuk mengambil sepatu nomor 3, Anda langsung membukanya tanpa mengecek 0, 1, atau 2.
+                        </p>
+                        <div class="space-y-3 text-xs">
+                            <div>
+                                <label class="font-semibold">Pertanyaan 1: Mengapa mengambil sepatu di rak nomor 3 bisa dilakukan secara langsung (direct access)?</label>
+                                <textarea id="lkpd-q1" rows="2" class="w-full mt-1 p-3 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700" placeholder="Ketik jawaban hasil diskusi..."></textarea>
+                            </div>
+                            <div>
+                                <label class="font-semibold">Pertanyaan 2: Jika ada murid ke-6 yang ingin menyimpan sepatunya di rak tersebut, apa kendala yang dihadapi?</label>
+                                <textarea id="lkpd-q2" rows="2" class="w-full mt-1 p-3 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700" placeholder="Ketik jawaban hasil diskusi..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Case Study 2: Linked List -->
+                    <div class="glass-card p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+                        <div class="flex items-center space-x-3">
+                            <span class="w-8 h-8 rounded-full bg-royalPurple text-white font-bold flex items-center justify-center text-xs">2</span>
+                            <h3 class="font-bold text-base">Studi Kasus 2: Linked List (Gerbong Kereta Sepeda)</h3>
+                        </div>
+                        <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-violet-50 dark:bg-slate-900 p-3 rounded-xl">
+                            Anak-anak bermain "Kereta Sepeda" memegang pinggang teman di depannya. Anak terdepan adalah Lokomotif (Head). Jika Budi bergabung di tengah barisan, teman di depan cukup memegang Budi dan Budi memegang teman di belakangnya.
+                        </p>
+                        <div class="space-y-3 text-xs">
+                            <div>
+                                <label class="font-semibold">Pertanyaan: Apa perbedaan cara menambah orang di barisan "Kereta Sepeda" dibanding rak sepatu (Array)?</label>
+                                <textarea id="lkpd-q3" rows="2" class="w-full mt-1 p-3 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700" placeholder="Ketik jawaban hasil diskusi..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Case Study 3: Stack vs Queue -->
+                    <div class="glass-card p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+                        <div class="flex items-center space-x-3">
+                            <span class="w-8 h-8 rounded-full bg-royalPurple text-white font-bold flex items-center justify-center text-xs">3</span>
+                            <h3 class="font-bold text-base">Studi Kasus 3: Prinsip Stack vs Queue</h3>
+                        </div>
+                        <div class="space-y-3 text-xs">
+                            <div>
+                                <label class="font-semibold">Pertanyaan: Mengapa antrean kasir supermarket (Queue/FIFO) dianggap lebih adil dibanding tumpukan piring kantin (Stack/LIFO)?</label>
+                                <textarea id="lkpd-q4" rows="2" class="w-full mt-1 p-3 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700" placeholder="Ketik jawaban hasil diskusi..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-4 flex justify-end">
+                    <button onclick="saveLkpdAnswers()" class="px-6 py-3 bg-royalPurple text-white font-extrabold text-xs rounded-xl hover:bg-deepPurple transition flex items-center space-x-2">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        <span>Simpan Jawaban LKPD</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- PAGE 7: KUIS INTERAKTIF -->
+            <section id="page-quiz" class="page-content space-y-6 hidden">
+                <div class="border-b border-slate-200 dark:border-slate-800 pb-4 flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl font-black text-deepPurple dark:text-lavenderBg">Kuis Interaktif Formatif</h1>
+                        <p class="text-xs text-slate-500">Uji pemahaman mandiri Struktur Data & Algoritma</p>
+                    </div>
+                    <div class="px-3 py-1 bg-violet-100 dark:bg-slate-800 rounded-full text-xs font-bold text-royalPurple dark:text-violetAccent">
+                        Timer: <span id="quiz-timer">10:00</span>
+                    </div>
+                </div>
+
+                <!-- Quiz Card Container -->
+                <div class="glass-card p-8 rounded-3xl border border-slate-200 dark:border-slate-800 max-w-2xl mx-auto space-y-6" id="quiz-box">
+                    <div class="flex items-center justify-between border-b pb-3">
+                        <span class="text-xs font-bold text-slate-400">Soal Ke-<span id="quiz-current-idx">1</span> dari <span id="quiz-total-idx">10</span></span>
+                        <span class="text-xs font-bold text-accentGold" id="quiz-category-tag">Struktur Data</span>
+                    </div>
+
+                    <h3 class="text-base sm:text-lg font-bold leading-snug" id="quiz-question-text">
+                        Pertanyaan kuis akan dimuat di sini...
+                    </h3>
+
+                    <!-- Options Container -->
+                    <div class="space-y-3" id="quiz-options-container">
+                        <!-- Dynamic Options rendered here -->
+                    </div>
+
+                    <div class="flex justify-between items-center pt-4 border-t">
+                        <button onclick="resetQuiz()" class="text-xs font-bold text-slate-400 hover:text-slate-600">Reset Kuis</button>
+                        <button onclick="submitQuizAnswer()" id="btn-quiz-next" class="px-6 py-2.5 bg-royalPurple text-white font-bold text-xs rounded-xl hover:bg-deepPurple">Selanjutnya →</button>
+                    </div>
+                </div>
+
+                <!-- Quiz Result Box (Hidden by default) -->
+                <div id="quiz-result-box" class="glass-card p-8 rounded-3xl border border-slate-200 dark:border-slate-800 max-w-xl mx-auto text-center space-y-4 hidden">
+                    <div class="w-16 h-16 mx-auto rounded-full bg-accentGold/20 text-accentGold flex items-center justify-center text-3xl">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-deepPurple dark:text-lavenderBg">Hasil Kuis Formatif</h2>
+                    <p class="text-4xl font-black text-royalPurple dark:text-violetAccent" id="quiz-final-score">0 / 100</p>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 font-medium" id="quiz-feedback-msg">Luar Biasa!</p>
+                    <button onclick="startQuiz()" class="px-6 py-2.5 bg-royalPurple text-white font-bold text-xs rounded-xl hover:bg-deepPurple">Ulangi Kuis</button>
+                </div>
+            </section>
+
+            <!-- PAGE 8: EVALUASI SUMATIF (PERTEMUAN 3) -->
+            <section id="page-evaluasi" class="page-content space-y-6 hidden">
+                <div class="border-b border-slate-200 dark:border-slate-800 pb-4">
+                    <span class="text-xs font-bold text-rose-500 uppercase tracking-widest">Pertemuan 3</span>
+                    <h1 class="text-2xl font-black text-deepPurple dark:text-lavenderBg">Evaluasi Sumatif Pembelajaran</h1>
+                    <p class="text-xs text-slate-500">Ujian Sumatif 10 Soal Uraian Komprehensif Berdasarkan Modul RPM SMAN 1 Sumenep</p>
+                </div>
+
+                <!-- Student Identity Card for Exam -->
+                <div class="glass-card p-6 rounded-2xl border border-slate-200 dark:border-slate-800 grid sm:grid-cols-3 gap-4 text-xs">
+                    <div>
+                        <label class="font-bold">Nama Lengkap Murid:</label>
+                        <input type="text" id="eval-student-name" placeholder="Ketik nama lengkap..." class="mt-1 w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700">
+                    </div>
+                    <div>
+                        <label class="font-bold">Kelas / Absen:</label>
+                        <input type="text" id="eval-student-class" placeholder="Contoh: X-1 / Absen 05" class="mt-1 w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700">
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="startSumativeExam()" class="w-full py-2 bg-royalPurple text-white font-bold rounded-xl hover:bg-deepPurple">Mulai Ujian</button>
+                    </div>
+                </div>
+
+                <!-- Question Form Container -->
+                <div id="eval-exam-box" class="glass-card p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-6 hidden">
+                    <div class="flex items-center justify-between border-b pb-3 text-xs font-bold">
+                        <span>Soal Uraian <span id="eval-q-num">1</span> dari 10</span>
+                        <span id="eval-q-tag" class="text-royalPurple dark:text-violetAccent">Struktur Data</span>
+                    </div>
+
+                    <p class="text-sm font-bold text-slate-800 dark:text-slate-100 leading-relaxed" id="eval-q-text">
+                        Soal Uraian akan tampil di sini...
+                    </p>
+
+                    <textarea id="eval-q-answer" rows="5" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs" placeholder="Tuliskan jawaban analisis Uraian kamu secara jelas di sini..."></textarea>
+
+                    <div class="flex justify-between items-center">
+                        <button onclick="prevEvalQ()" id="btn-eval-prev" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-xs font-bold rounded-xl">← Sebelumnya</button>
+                        <button onclick="nextEvalQ()" id="btn-eval-next" class="px-6 py-2 bg-royalPurple text-white text-xs font-bold rounded-xl">Selanjutnya →</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PAGE 9: REFLEKSI PEMBELAJARAN -->
+            <section id="page-refleksi" class="page-content space-y-6 hidden">
+                <div class="border-b border-slate-200 dark:border-slate-800 pb-4">
+                    <h1 class="text-2xl font-black text-deepPurple dark:text-lavenderBg">Jurnal Refleksi Murid</h1>
+                    <p class="text-xs text-slate-500">Ungkapkan pengalaman dan pemahaman belajar kamu setelah mengikuti pembelajaran ini.</p>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-6 max-w-2xl mx-auto">
+                    <!-- Emotion Mood Picker -->
+                    <div class="space-y-2 text-center">
+                        <label class="text-xs font-bold">Tingkat Pemahaman Keseluruhan Kamu:</label>
+                        <div class="flex justify-center space-x-4 pt-2">
+                            <button onclick="setMood('Sangat Memahami')" class="mood-btn p-3 rounded-xl bg-violet-100 dark:bg-slate-800 hover:bg-violet-200 text-2xl" title="Sangat Memahami">🤩</button>
+                            <button onclick="setMood('Memahami')" class="mood-btn p-3 rounded-xl bg-violet-100 dark:bg-slate-800 hover:bg-violet-200 text-2xl" title="Memahami">😊</button>
+                            <button onclick="setMood('Cukup Memahami')" class="mood-btn p-3 rounded-xl bg-violet-100 dark:bg-slate-800 hover:bg-violet-200 text-2xl" title="Cukup Memahami">😐</button>
+                            <button onclick="setMood('Perlu Bimbingan')" class="mood-btn p-3 rounded-xl bg-violet-100 dark:bg-slate-800 hover:bg-violet-200 text-2xl" title="Perlu Bimbingan">🤔</button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 text-xs">
+                        <div>
+                            <label class="font-bold">1. Apa pengetahuan baru paling berharga yang kamu dapatkan?</label>
+                            <textarea id="ref-q1" rows="2" class="w-full mt-1 p-3 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700"></textarea>
+                        </div>
+                        <div>
+                            <label class="font-bold">2. Materi mana yang paling mudah & paling sulit dipahami?</label>
+                            <textarea id="ref-q2" rows="2" class="w-full mt-1 p-3 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700"></textarea>
+                        </div>
+                        <div>
+                            <label class="font-bold">3. Bagaimana pengalaman kamu mencoba simulasi di Algorithm Playground?</label>
+                            <textarea id="ref-q3" rows="2" class="w-full mt-1 p-3 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700"></textarea>
+                        </div>
+                    </div>
+
+                    <button onclick="saveRefleksi()" class="w-full py-3 bg-royalPurple text-white font-bold text-xs rounded-xl hover:bg-deepPurple">Kirim Refleksi Belajar</button>
+                </div>
+            </section>
+
+            <!-- PAGE 10: TEACHER DASHBOARD (PORTAL GURU) -->
+            <section id="page-teacher-dashboard" class="page-content space-y-6 hidden">
+                <div class="border-b border-slate-200 dark:border-slate-800 pb-4 flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl font-black text-deepPurple dark:text-lavenderBg flex items-center space-x-2">
+                            <i class="fa-solid fa-chalkboard-user text-accentGold"></i>
+                            <span>Dashboard Pengampu (Guru)</span>
+                        </h1>
+                        <p class="text-xs text-slate-500">Manajemen Nilai, Monitoring Progres Murid & Rekap Rekam Pembelajaran SMAN 1 Sumenep</p>
+                    </div>
+
+                    <button onclick="exportTeacherExcel()" class="px-4 py-2 bg-emerald-600 text-white font-bold text-xs rounded-xl hover:bg-emerald-700 flex items-center space-x-2">
+                        <i class="fa-solid fa-file-excel"></i>
+                        <span>Ekspor Rekap Excel</span>
+                    </button>
+                </div>
+
+                <!-- Teacher Stats Analytics -->
+                <div class="grid sm:grid-cols-3 gap-4">
+                    <div class="glass-card p-5 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-1">
+                        <span class="text-xs text-slate-400 font-bold">Total Murid Terdaftar:</span>
+                        <p class="text-3xl font-black text-deepPurple dark:text-lavenderBg">36 Murid</p>
+                    </div>
+                    <div class="glass-card p-5 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-1">
+                        <span class="text-xs text-slate-400 font-bold">Rata-Rata Nilai Kuis:</span>
+                        <p class="text-3xl font-black text-royalPurple dark:text-violetAccent">86.5</p>
+                    </div>
+                    <div class="glass-card p-5 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-1">
+                        <span class="text-xs text-slate-400 font-bold">Tingkat Ketuntasan Kelas:</span>
+                        <p class="text-3xl font-black text-emerald-500">92%</p>
+                    </div>
+                </div>
+
+                <!-- Student Grade Management Table -->
+                <div class="glass-card rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+                    <div class="p-4 bg-slate-100 dark:bg-slate-900 font-bold text-xs border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                        <span>Daftar Nilai & Hasil Asesmen Murid</span>
+                        <span class="text-[10px] text-slate-400">Terakhir Diperbarui: Hari Ini</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-violet-50 dark:bg-slate-950 font-bold border-b border-slate-200 dark:border-slate-800">
+                                <tr>
+                                    <th class="p-3">No</th>
+                                    <th class="p-3">Nama Murid</th>
+                                    <th class="p-3">Kelas</th>
+                                    <th class="p-3">Nilai Kuis</th>
+                                    <th class="p-3">Nilai LKPD</th>
+                                    <th class="p-3">Nilai Sumative</th>
+                                    <th class="p-3">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200 dark:divide-slate-800" id="teacher-table-body">
+                                <!-- Dynamic Render Teacher Table -->
+                                <tr>
+                                    <td class="p-3">1</td>
+                                    <td class="p-3 font-bold">Ahmad Fauzi</td>
+                                    <td class="p-3">X-1</td>
+                                    <td class="p-3 font-bold text-royalPurple">90</td>
+                                    <td class="p-3">88</td>
+                                    <td class="p-3">85</td>
+                                    <td class="p-3"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full font-bold">Tuntas</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3">2</td>
+                                    <td class="p-3 font-bold">Siti Nurhaliza</td>
+                                    <td class="p-3">X-1</td>
+                                    <td class="p-3 font-bold text-royalPurple">100</td>
+                                    <td class="p-3">95</td>
+                                    <td class="p-3">92</td>
+                                    <td class="p-3"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full font-bold">Tuntas</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- JAVASCRIPT APP LOGIC & SIMULATOR ENGINE -->
+    <script>
+        /* APP STATE */
+        const state = {
+            currentPage: 'home',
+            role: 'Murid',
+            theme: 'light',
+            progress: 20,
+            lkpdData: {},
+            quizScore: 0,
+            evalScore: 0,
+            mood: 'Sangat Memahami',
+            dsSimType: 'stack',
+            dsStack: ['Piring 1', 'Piring 2'],
+            dsQueue: ['Antrean 1', 'Antrean 2'],
+            algoSimType: 'bubble',
+            algoArray: [15, 8, 20, 5, 12],
+            algoStep: 0,
+            algoHistory: [],
+            algoTimer: null,
+            comparisons: 0,
+            swaps: 0
+        };
+
+        /* QUESTION BANKS */
+        const quizBank = [
+            { q: "Struktur data mana yang beroperasi menggunakan prinsip LIFO (Last-In, First-Out)?", opts: ["Queue", "Array", "Stack", "Tree"], ans: 2, cat: "Struktur Data" },
+            { q: "Analogi tumpukan piring di dapur dapur cocok menggambarkan struktur data...", opts: ["Stack", "Queue", "Linked List", "Binary Search"], ans: 0, cat: "Struktur Data" },
+            { q: "Apa syarat utama agar algoritma Binary Search dapat dijalankan?", opts: ["Data harus berjumlah genap", "Data wajib terurut", "Data harus bertipe string", "Data bebas acak"], ans: 1, cat: "Algoritma Standar" },
+            { q: "Operasi untuk menambahkan elemen baru ke dalam Stack disebut...", opts: ["Pop", "Enqueue", "Push", "Dequeue"], ans: 2, cat: "Struktur Data" },
+            { q: "Algoritma pengurutan yang membandingkan dua elemen berdekatan dan menukarnya jika salah dinamakan...", opts: ["Selection Sort", "Bubble Sort", "Insertion Sort", "Linear Search"], ans: 1, cat: "Algoritma Standar" },
+            { q: "Dalam analogi gerbong kereta api (Linked List), penghubung antar-gerbong mewakili...", opts: ["Node", "Pointer", "Indeks", "Root"], ans: 1, cat: "Struktur Data" },
+            { q: "Berapa kompleksitas waktu rata-rata dari Linear Search?", opts: ["O(1)", "O(log n)", "O(n)", "O(n²)"], ans: 2, cat: "Algoritma Standar" },
+            { q: "Elemen paling atas pada struktur data Tree dinamakan...", opts: ["Leaf", "Parent", "Child", "Root"], ans: 3, cat: "Struktur Data" },
+            { q: "Prinsip FIFO (First-In, First-Out) digunakan oleh...", opts: ["Queue", "Stack", "Array", "Tree"], ans: 0, cat: "Struktur Data" },
+            { q: "Algoritma pengurutan yang cara kerjanya mirip dengan merapikan kartu remi di tangan adalah...", opts: ["Bubble Sort", "Selection Sort", "Insertion Sort", "Binary Search"], ans: 2, cat: "Algoritma Standar" }
+        ];
+
+        const evalBank = [
+            { q: "Sebutkan contoh penerapan struktur data Array dalam kehidupan sehari-hari selain rak sepatu, dan jelaskan mengapa contoh tersebut menggunakan prinsip Array!", cat: "Struktur Data" },
+            { q: "Berdasarkan analogi gerbong kereta api, apa fungsi dari pointer (penyambung) pada struktur data Linked List?", cat: "Struktur Data" },
+            { q: "Prinsip kerja Stack adalah LIFO (Last-In, First-Out). Mengapa saat kita mengambil piring dari tumpukan piring di dapur dikatakan menerapkan prinsip ini?", cat: "Struktur Data" },
+            { q: "Jelaskan perbedaan mendasar antara prinsip FIFO pada Queue dan prinsip LIFO pada Stack jika diterapkan pada antrean kasir supermarket!", cat: "Struktur Data" },
+            { q: "Struktur Tree berbentuk hierarki. Sebutkan nama posisi paling atas pada Tree beserta salah satu contoh penerapannya!", cat: "Struktur Data" },
+            { q: "Seseorang ingin mencari data pada daftar yang elemennya tersusun secara acak. Algoritma pencarian apa yang paling tepat digunakan dan bagaimana cara kerjanya?", cat: "Algoritma Standar" },
+            { q: "Apa syarat utama yang wajib dipenuhi sebelum algoritma Binary Search dapat dijalankan?", cat: "Algoritma Standar" },
+            { q: "Bagaimana cara kerja algoritma Bubble Sort dalam mengurutkan elemen data?", cat: "Algoritma Standar" },
+            { q: "Jelaskan prinsip dasar Insertion Sort berdasarkan analogi mengurutkan kartu remi di tangan!", cat: "Algoritma Standar" },
+            { q: "Dalam algoritma Selection Sort, daftar data dibagi menjadi dua bagian. Sebutkan kedua bagian tersebut dan jelaskan proses penukarannya!", cat: "Algoritma Standar" }
+        ];
+
+        let currentQuizIdx = 0;
+        let evalCurrentIdx = 0;
+        let evalAnswers = new Array(10).fill("");
+
+        /* INITIALIZATION */
+        window.onload = function() {
+            renderDsSim();
+            resetAlgoSim();
+            initQuiz();
+            setupMobileNav();
+        };
+
+        /* GLOBAL SEARCH */
+        function handleGlobalSearch(e) {
+            const query = e.target.value.toLowerCase().trim();
+            if(!query) return;
+            if(e.key === 'Enter') {
+                if(query.includes('array') || query.includes('stack') || query.includes('queue') || query.includes('tree') || query.includes('linked')) {
+                    navigateTo('materi-ds');
+                } else if(query.includes('search') || query.includes('sort') || query.includes('bubble') || query.includes('binary')) {
+                    navigateTo('materi-algo');
+                } else if(query.includes('simulasi') || query.includes('playground') || query.includes('lab')) {
+                    navigateTo('playground');
+                } else if(query.includes('kuis') || query.includes('quiz')) {
+                    navigateTo('quiz');
+                } else if(query.includes('lkpd')) {
+                    navigateTo('lkpd');
+                } else if(query.includes('evaluasi') || query.includes('ujian')) {
+                    navigateTo('evaluasi');
+                }
+            }
+        }
+
+        /* NAVIGATION ROUTER */
+        function navigateTo(pageId) {
+            state.currentPage = pageId;
+            document.querySelectorAll('.page-content').forEach(el => el.classList.add('hidden'));
+            const targetPage = document.getElementById(`page-${pageId}`);
+            if (targetPage) targetPage.classList.remove('hidden');
+
+            // Sidebar highlight
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if (btn.getAttribute('data-page') === pageId) {
+                    btn.classList.add('bg-royalPurple', 'text-accentGold');
+                } else {
+                    btn.classList.remove('bg-royalPurple', 'text-accentGold');
+                }
+            });
+
+            // Update Progress Percentage UI
+            let prog = 20;
+            if(pageId === 'materi-ds') prog = 40;
+            if(pageId === 'materi-algo') prog = 60;
+            if(pageId === 'playground') prog = 75;
+            if(pageId === 'lkpd') prog = 85;
+            if(pageId === 'quiz') prog = 90;
+            if(pageId === 'evaluasi' || pageId === 'refleksi') prog = 100;
+            state.progress = prog;
+            const progEl = document.getElementById('user-progress-percentage');
+            if(progEl) progEl.innerText = `${prog}%`;
+
+            // Scroll top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        /* MOBILE SIDEBAR TOGGLE */
+        function setupMobileNav() {
+            const toggleBtn = document.getElementById('mobile-toggle');
+            const sidebar = document.getElementById('sidebar');
+            toggleBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('-translate-x-full');
+            });
+        }
+
+        /* DARK MODE TOGGLE */
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            const icon = document.getElementById('theme-icon');
+            if (document.documentElement.classList.contains('dark')) {
+                icon.className = 'fa-solid fa-sun text-lg';
+            } else {
+                icon.className = 'fa-solid fa-moon text-lg';
+            }
+        }
+
+        /* ROLE SWITCHER */
+        function toggleRoleSwitch() {
+            state.role = state.role === 'Murid' ? 'Guru' : 'Murid';
+            document.getElementById('user-role-label').innerText = state.role;
+            const icon = document.getElementById('role-icon');
+            icon.className = state.role === 'Murid' ? 'fa-solid fa-user-graduate text-accentGold text-sm' : 'fa-solid fa-chalkboard-user text-accentGold text-sm';
+            if (state.role === 'Guru') navigateTo('teacher-dashboard');
+        }
+
+        /* SCHOOL LOGO UPLOADER */
+        function handleLogoChange(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('school-logo').src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        /* MATERI TABS CONTROL */
+        function showDsTab(tabKey) {
+            document.querySelectorAll('.ds-tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`ds-tab-${tabKey}`).classList.remove('hidden');
+            document.querySelectorAll('.ds-tab-btn').forEach(btn => {
+                if (btn.getAttribute('data-tab') === tabKey) {
+                    btn.className = "ds-tab-btn px-4 py-2 rounded-xl font-bold text-xs bg-royalPurple text-white";
+                } else {
+                    btn.className = "ds-tab-btn px-4 py-2 rounded-xl font-bold text-xs hover:bg-slate-200 dark:hover:bg-slate-800";
+                }
+            });
+        }
+
+        function showAlgoTab(tabKey) {
+            document.querySelectorAll('.algo-tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`algo-tab-${tabKey}`).classList.remove('hidden');
+            document.querySelectorAll('.algo-tab-btn').forEach(btn => {
+                if (btn.getAttribute('data-tab') === tabKey) {
+                    btn.className = "algo-tab-btn px-4 py-2 rounded-xl font-bold text-xs bg-royalPurple text-white";
+                } else {
+                    btn.className = "algo-tab-btn px-4 py-2 rounded-xl font-bold text-xs hover:bg-slate-200 dark:hover:bg-slate-800";
+                }
+            });
+        }
+
+        /* DATA STRUCTURES SIMULATOR */
+        function setPlaygroundMode(mode) {
+            if (mode === 'ds') {
+                document.getElementById('sim-ds-container').classList.remove('hidden');
+                document.getElementById('sim-algo-container').classList.add('hidden');
+                document.getElementById('btn-mode-ds').className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-royalPurple text-white";
+                document.getElementById('btn-mode-algo').className = "px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300";
+            } else {
+                document.getElementById('sim-ds-container').classList.add('hidden');
+                document.getElementById('sim-algo-container').classList.remove('hidden');
+                document.getElementById('btn-mode-algo').className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-royalPurple text-white";
+                document.getElementById('btn-mode-ds').className = "px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300";
+            }
+        }
+
+        function loadDsSim(type) {
+            state.dsSimType = type;
+            document.querySelectorAll('.ds-sim-btn').forEach(btn => {
+                if(btn.getAttribute('data-ds') === type) {
+                    btn.className = "ds-sim-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-violet-100 dark:bg-slate-800 text-royalPurple dark:text-violetAccent border border-violetAccent";
+                } else {
+                    btn.className = "ds-sim-btn px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-800";
+                }
+            });
+            renderDsSim();
+        }
+
+        function handleDsAdd() {
+            const input = document.getElementById('ds-input-val');
+            const val = input.value.trim() || `Item ${state.dsSimType === 'stack' ? state.dsStack.length + 1 : state.dsQueue.length + 1}`;
+            if (state.dsSimType === 'stack') {
+                state.dsStack.push(val);
+                document.getElementById('ds-sim-info').innerText = `PUSH: Menyimpan '${val}' ke paling atas Stack (LIFO).`;
+            } else {
+                state.dsQueue.push(val);
+                document.getElementById('ds-sim-info').innerText = `ENQUEUE: '${val}' masuk ke barisan belakang Queue (FIFO).`;
+            }
+            input.value = '';
+            renderDsSim();
+        }
+
+        function handleDsRemove() {
+            if (state.dsSimType === 'stack') {
+                if (state.dsStack.length === 0) return;
+                const removed = state.dsStack.pop();
+                document.getElementById('ds-sim-info').innerText = `POP: Mengambil '${removed}' dari posisi teratas (LIFO).`;
+            } else {
+                if (state.dsQueue.length === 0) return;
+                const removed = state.dsQueue.shift();
+                document.getElementById('ds-sim-info').innerText = `DEQUEUE: '${removed}' yang paling depan dilayani lebih awal (FIFO).`;
+            }
+            renderDsSim();
+        }
+
+        function renderDsSim() {
+            const display = document.getElementById('ds-visual-display');
+            display.innerHTML = '';
+            const list = state.dsSimType === 'stack' ? state.dsStack : state.dsQueue;
+            
+            list.forEach((item, idx) => {
+                const node = document.createElement('div');
+                node.className = "px-4 py-3 bg-violetAccent/20 border-2 border-violetAccent text-white font-bold text-xs rounded-xl flex items-center space-x-2 animate-bounce";
+                node.innerHTML = `<span>${item}</span>`;
+                if(state.dsSimType === 'stack' && idx === list.length - 1) {
+                    node.innerHTML += ` <span class="text-[9px] bg-accentGold text-black px-1.5 py-0.5 rounded font-black">TOP</span>`;
+                }
+                if(state.dsSimType === 'queue' && idx === 0) {
+                    node.innerHTML += ` <span class="text-[9px] bg-emerald-400 text-black px-1.5 py-0.5 rounded font-black">FRONT</span>`;
+                }
+                display.appendChild(node);
+            });
+        }
+
+        /* ALGORITHM SIMULATOR ENGINE FULL INTEGRATION */
+        function selectAlgoSim(type) {
+            state.algoSimType = type;
+            document.querySelectorAll('.algo-sim-btn').forEach(btn => {
+                if(btn.getAttribute('data-sim') === type) {
+                    btn.className = "algo-sim-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-royalPurple text-white";
+                } else {
+                    btn.className = "algo-sim-btn px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-800";
+                }
+            });
+
+            const targetBox = document.getElementById('target-search-container');
+            if (type === 'linear' || type === 'binary') {
+                targetBox.classList.remove('hidden');
+            } else {
+                targetBox.classList.add('hidden');
+            }
+
+            resetAlgoSim();
+        }
+
+        function resetAlgoSim() {
+            if (state.algoTimer) clearInterval(state.algoTimer);
+            const strArr = document.getElementById('algo-input-array').value;
+            state.algoArray = strArr.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
+            if(state.algoArray.length === 0) state.algoArray = [15, 8, 20, 5, 12];
+            
+            const target = parseInt(document.getElementById('algo-target-val').value) || 20;
+
+            state.algoStep = 0;
+            state.comparisons = 0;
+            state.swaps = 0;
+            state.algoHistory = generateAlgoSteps([...state.algoArray], state.algoSimType, target);
+            
+            updateAlgoUI(0);
+        }
+
+        function generateAlgoSteps(arr, type, target) {
+            const steps = [];
+            steps.push({ arr: [...arr], active: [], sorted: [], eliminated: [], log: "Kondisi awal array data.", swaps: 0, comps: 0 });
+
+            if (type === 'bubble') {
+                let comps = 0, swaps = 0;
+                let n = arr.length;
+                let sortedIndices = [];
+                for (let i = 0; i < n; i++) {
+                    for (let j = 0; j < n - i - 1; j++) {
+                        comps++;
+                        steps.push({ arr: [...arr], active: [j, j+1], sorted: [...sortedIndices], eliminated: [], log: `Membandingkan elemen ${arr[j]} dan ${arr[j+1]}`, swaps, comps });
+                        if (arr[j] > arr[j+1]) {
+                            swaps++;
+                            let tmp = arr[j]; arr[j] = arr[j+1]; arr[j+1] = tmp;
+                            steps.push({ arr: [...arr], active: [j, j+1], sorted: [...sortedIndices], eliminated: [], log: `Menukar ${arr[j+1]} dengan ${arr[j]} karena posisinya salah.`, swaps, comps });
+                        }
+                    }
+                    sortedIndices.push(n - i - 1);
+                }
+                steps.push({ arr: [...arr], active: [], sorted: Array.from({length: n}, (_, i) => i), eliminated: [], log: "Pengurutan Bubble Sort Selesai!", swaps, comps });
+            } else if (type === 'insertion') {
+                let comps = 0, swaps = 0;
+                let n = arr.length;
+                let sortedIndices = [0];
+                for (let i = 1; i < n; i++) {
+                    let key = arr[i];
+                    let j = i - 1;
+                    steps.push({ arr: [...arr], active: [i], sorted: [...sortedIndices], eliminated: [], log: `Mengambil key = ${key} untuk disisipkan.`, swaps, comps });
+                    while (j >= 0 && arr[j] > key) {
+                        comps++;
+                        swaps++;
+                        arr[j + 1] = arr[j];
+                        steps.push({ arr: [...arr], active: [j, j+1], sorted: [...sortedIndices], eliminated: [], log: `Menggeser ${arr[j]} ke kanan.`, swaps, comps });
+                        j--;
+                    }
+                    if (j >= 0) comps++;
+                    arr[j + 1] = key;
+                    sortedIndices.push(i);
+                    steps.push({ arr: [...arr], active: [j + 1], sorted: [...sortedIndices], eliminated: [], log: `Menyelipkan ${key} pada indeks ${j + 1}.`, swaps, comps });
+                }
+                steps.push({ arr: [...arr], active: [], sorted: Array.from({length: n}, (_, i) => i), eliminated: [], log: "Pengurutan Insertion Sort Selesai!", swaps, comps });
+            } else if (type === 'selection') {
+                let comps = 0, swaps = 0;
+                let n = arr.length;
+                let sortedIndices = [];
+                for (let i = 0; i < n; i++) {
+                    let minIdx = i;
+                    steps.push({ arr: [...arr], active: [i], sorted: [...sortedIndices], eliminated: [], log: `Mencari nilai terkecil mulai dari indeks ${i}.`, swaps, comps });
+                    for (let j = i + 1; j < n; j++) {
+                        comps++;
+                        steps.push({ arr: [...arr], active: [j, minIdx], sorted: [...sortedIndices], eliminated: [], log: `Membandingkan ${arr[j]} dengan min_val = ${arr[minIdx]}`, swaps, comps });
+                        if (arr[j] < arr[minIdx]) {
+                            minIdx = j;
+                        }
+                    }
+                    if (minIdx !== i) {
+                        swaps++;
+                        let tmp = arr[i]; arr[i] = arr[minIdx]; arr[minIdx] = tmp;
+                        steps.push({ arr: [...arr], active: [i, minIdx], sorted: [...sortedIndices], eliminated: [], log: `Menukar nilai terkecil ${arr[i]} ke indeks ${i}.`, swaps, comps });
+                    }
+                    sortedIndices.push(i);
+                }
+                steps.push({ arr: [...arr], active: [], sorted: Array.from({length: n}, (_, i) => i), eliminated: [], log: "Pengurutan Selection Sort Selesai!", swaps, comps });
+            } else if (type === 'linear') {
+                let comps = 0;
+                let found = false;
+                for (let i = 0; i < arr.length; i++) {
+                    comps++;
+                    if (arr[i] === target) {
+                        steps.push({ arr: [...arr], active: [], sorted: [i], eliminated: [], log: `Target ${target} DITEMUKAN pada indeks ${i}!`, swaps: 0, comps });
+                        found = true;
+                        break;
+                    } else {
+                        steps.push({ arr: [...arr], active: [i], sorted: [], eliminated: [], log: `Memeriksa indeks ${i} (Nilai: ${arr[i]}). Bukan target.`, swaps: 0, comps });
+                    }
+                }
+                if (!found) {
+                    steps.push({ arr: [...arr], active: [], sorted: [], eliminated: Array.from({length: arr.length}, (_, i) => i), log: `Target ${target} TIDAK DITEMUKAN pada array!`, swaps: 0, comps });
+                }
+            } else if (type === 'binary') {
+                let comps = 0;
+                arr.sort((a,b) => a - b);
+                steps.push({ arr: [...arr], active: [], sorted: [], eliminated: [], log: `Data diurutkan terlebih dahulu: [${arr.join(', ')}]`, swaps: 0, comps });
+                let low = 0, high = arr.length - 1;
+                let found = false;
+                let eliminated = [];
+                while (low <= high) {
+                    comps++;
+                    let mid = Math.floor((low + high) / 2);
+                    steps.push({ arr: [...arr], active: [mid], sorted: [], eliminated: [...eliminated], log: `Memeriksa elemen tengah mid = ${mid} (Nilai: ${arr[mid]})`, swaps: 0, comps });
+                    if (arr[mid] === target) {
+                        steps.push({ arr: [...arr], active: [], sorted: [mid], eliminated: [...eliminated], log: `Target ${target} DITEMUKAN pada indeks ${mid}!`, swaps: 0, comps });
+                        found = true;
+                        break;
+                    } else if (arr[mid] < target) {
+                        for(let k=low; k<=mid; k++) eliminated.push(k);
+                        low = mid + 1;
+                        steps.push({ arr: [...arr], active: [], sorted: [], eliminated: [...eliminated], log: `${arr[mid]} < ${target}. Mengeliminasi paruh kiri data.`, swaps: 0, comps });
+                    } else {
+                        for(let k=mid; k<=high; k++) eliminated.push(k);
+                        high = mid - 1;
+                        steps.push({ arr: [...arr], active: [], sorted: [], eliminated: [...eliminated], log: `${arr[mid]} > ${target}. Mengeliminasi paruh kanan data.`, swaps: 0, comps });
+                    }
+                }
+                if (!found) {
+                    steps.push({ arr: [...arr], active: [], sorted: [], eliminated: Array.from({length: arr.length}, (_, i) => i), log: `Target ${target} TIDAK DITEMUKAN!`, swaps: 0, comps });
+                }
+            }
+            return steps;
+        }
+
+        function updateAlgoUI(stepIdx) {
+            const current = state.algoHistory[stepIdx] || state.algoHistory[state.algoHistory.length - 1];
+            const container = document.getElementById('algo-bars-container');
+            container.innerHTML = '';
+
+            const maxVal = Math.max(...current.arr, 1);
+            current.arr.forEach((val, i) => {
+                const bar = document.createElement('div');
+                const heightPercent = Math.max((val / maxVal) * 160, 30);
+                
+                let bgColor = "bg-deepPurple border-violetAccent";
+                if (current.active.includes(i)) bgColor = "bg-accentGold text-slate-900";
+                if (current.sorted.includes(i)) bgColor = "bg-emerald-500 text-white";
+                if (current.eliminated && current.eliminated.includes(i)) bgColor = "bg-rose-500 text-white opacity-40";
+
+                bar.className = `w-12 rounded-t-xl flex flex-col justify-between items-center p-2 text-xs font-bold transition-all duration-300 border ${bgColor}`;
+                bar.style.height = `${heightPercent}px`;
+                bar.innerHTML = `<span>${val}</span><span class="text-[9px] opacity-75">${i}</span>`;
+                container.appendChild(bar);
+            });
+
+            document.getElementById('stat-comparisons').innerText = current.comps;
+            document.getElementById('stat-swaps').innerText = current.swaps;
+            document.getElementById('stat-log').innerText = current.log;
+        }
+
+        function stepAlgoSim() {
+            if (state.algoStep < state.algoHistory.length - 1) {
+                state.algoStep++;
+                updateAlgoUI(state.algoStep);
+            }
+        }
+
+        function toggleAutoPlayAlgoSim() {
+            const btn = document.getElementById('btn-play-algo');
+            if (state.algoTimer) {
+                clearInterval(state.algoTimer);
+                state.algoTimer = null;
+                btn.innerHTML = `<i class="fa-solid fa-play mr-1"></i> Auto Play`;
+            } else {
+                btn.innerHTML = `<i class="fa-solid fa-pause mr-1"></i> Pause`;
+                state.algoTimer = setInterval(() => {
+                    if (state.algoStep < state.algoHistory.length - 1) {
+                        state.algoStep++;
+                        updateAlgoUI(state.algoStep);
+                    } else {
+                        clearInterval(state.algoTimer);
+                        state.algoTimer = null;
+                        btn.innerHTML = `<i class="fa-solid fa-play mr-1"></i> Auto Play`;
+                    }
+                }, 1000);
+            }
+        }
+
+        /* LKPD ACTION HANDLERS */
+        function saveLkpdAnswers() {
+            const name = document.getElementById('lkpd-student-name').value;
+            if(!name) { alert('Silakan masukkan nama murid/kelompok terlebih dahulu.'); return; }
+            alert('Jawaban LKPD berhasil disimpan ke database lokal!');
+        }
+
+        function exportLkpdPdf() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFontSize(16);
+            doc.text("LKPD DIGITAL - INFORMATIKA SMAN 1 SUMENEP", 20, 20);
+            doc.setFontSize(11);
+            doc.text(`Nama: ${document.getElementById('lkpd-student-name').value || '-'}`, 20, 30);
+            doc.text(`Studi Kasus 1: ${document.getElementById('lkpd-q1').value || '-'}`, 20, 45);
+            doc.save("LKPD_Informatika_SMAN1Sumenep.pdf");
+        }
+
+        /* QUIZ ENGINE */
+        function initQuiz() {
+            currentQuizIdx = 0;
+            state.quizScore = 0;
+            renderQuizCard();
+        }
+
+        function renderQuizCard() {
+            const q = quizBank[currentQuizIdx];
+            document.getElementById('quiz-current-idx').innerText = currentQuizIdx + 1;
+            document.getElementById('quiz-total-idx').innerText = quizBank.length;
+            document.getElementById('quiz-category-tag').innerText = q.cat;
+            document.getElementById('quiz-question-text').innerText = q.q;
+
+            const optsDiv = document.getElementById('quiz-options-container');
+            optsDiv.innerHTML = '';
+            q.opts.forEach((opt, idx) => {
+                const label = document.createElement('label');
+                label.className = "flex items-center space-x-3 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-violet-50 dark:hover:bg-slate-800 cursor-pointer text-xs font-medium transition";
+                label.innerHTML = `
+                    <input type="radio" name="quiz-opt" value="${idx}" class="text-royalPurple focus:ring-violetAccent">
+                    <span>${opt}</span>
+                `;
+                optsDiv.appendChild(label);
+            });
+        }
+
+        function submitQuizAnswer() {
+            const selected = document.querySelector('input[name="quiz-opt"]:checked');
+            if(!selected) { alert('Pilih salah satu jawaban!'); return; }
+
+            if(parseInt(selected.value) === quizBank[currentQuizIdx].ans) {
+                state.quizScore += 10;
+            }
+
+            if(currentQuizIdx < quizBank.length - 1) {
+                currentQuizIdx++;
+                renderQuizCard();
+            } else {
+                showQuizResults();
+            }
+        }
+
+        function showQuizResults() {
+            document.getElementById('quiz-box').classList.add('hidden');
+            const resBox = document.getElementById('quiz-result-box');
+            resBox.classList.remove('hidden');
+            document.getElementById('quiz-final-score').innerText = `${state.quizScore} / 100`;
+            
+            let msg = "Tetap semangat! Pelajari kembali materi dan coba lagi.";
+            if(state.quizScore >= 90) msg = "Luar Biasa! Kamu menguasai materi dengan sangat baik!";
+            else if(state.quizScore >= 80) msg = "Hebat! Terus tingkatkan kemampuan komputasionalmu.";
+            else if(state.quizScore >= 70) msg = "Bagus! Sedikit lagi menuju penguasaan sempurna.";
+
+            document.getElementById('quiz-feedback-msg').innerText = msg;
+        }
+
+        function resetQuiz() {
+            document.getElementById('quiz-box').classList.remove('hidden');
+            document.getElementById('quiz-result-box').classList.add('hidden');
+            initQuiz();
+        }
+
+        /* EVALUASI SUMATIF ENGINE */
+        function startSumativeExam() {
+            const name = document.getElementById('eval-student-name').value;
+            if(!name) { alert('Silakan isi Nama Lengkap sebelum memulai ujian.'); return; }
+            document.getElementById('eval-exam-box').classList.remove('hidden');
+            evalCurrentIdx = 0;
+            renderEvalQ();
+        }
+
+        function renderEvalQ() {
+            const q = evalBank[evalCurrentIdx];
+            document.getElementById('eval-q-num').innerText = evalCurrentIdx + 1;
+            document.getElementById('eval-q-tag').innerText = q.cat;
+            document.getElementById('eval-q-text').innerText = q.q;
+            document.getElementById('eval-q-answer').value = evalAnswers[evalCurrentIdx] || "";
+        }
+
+        function prevEvalQ() {
+            evalAnswers[evalCurrentIdx] = document.getElementById('eval-q-answer').value;
+            if(evalCurrentIdx > 0) {
+                evalCurrentIdx--;
+                renderEvalQ();
+            }
+        }
+
+        function nextEvalQ() {
+            evalAnswers[evalCurrentIdx] = document.getElementById('eval-q-answer').value;
+            if(evalCurrentIdx < evalBank.length - 1) {
+                evalCurrentIdx++;
+                renderEvalQ();
+            } else {
+                alert('Selamat! Ujian Evaluasi Sumatif Pertemuan 3 telah berhasil dikumpulkan.');
+            }
+        }
+
+        /* REFLEKSI ENGINE */
+        function setMood(m) {
+            state.mood = m;
+            alert(`Tingkat pemahaman diset ke: ${m}`);
+        }
+
+        function saveRefleksi() {
+            alert('Refleksi belajar berhasil dikirim ke Guru Pengampu Ach. Febriyanto, S.Pd.');
+        }
+
+        /* TEACHER EXCEL EXPORT */
+        function exportTeacherExcel() {
+            const data = [
+                ["No", "Nama Murid", "Kelas", "Nilai Kuis", "Nilai LKPD", "Nilai Sumative", "Status"],
+                [1, "Ahmad Fauzi", "X-1", 90, 88, 85, "Tuntas"],
+                [2, "Siti Nurhaliza", "X-1", 100, 95, 92, "Tuntas"]
+            ];
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Rekap_Nilai");
+            XLSX.writeFile(wb, "Rekap_Nilai_Informatika_SMAN1Sumenep.xlsx");
+        }
+    </script>
+</body>
+</html>
